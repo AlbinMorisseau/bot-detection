@@ -24,19 +24,16 @@ De plus, 60 % des sites n'ont mis en place aucune protection contre les attaqu
 Dans ce contexte, l'objectif de ce projet est de développer des méthodes d'analyse permettant d'identifier et de différencier les comportements des utilisateurs humains de ceux des robots. Une telle approche est essentielle pour protéger les ressources informatiques, préserver l'intégrité des données et optimiser l'expérience utilisateur en filtrant les interactions non humaines.
 
 ## Structure du Projet
-
+'''
 bot-detection-project/
-│
 ├── data/
-│   └── data.csv          
-│
+│   └── data.csv
 ├── notebooks/
-│   └── EDA.ipynb      
-│
+│   └── EDA.ipynb
 ├── src/
-│   ├── preprocess.py 
-│   └── train.py          
-│
-├── .gitignore            
-├── requirements.txt      
-└── README.md             
+│   ├── preprocess.py
+│   └── train.py
+├── .gitignore
+├── requirements.txt
+└── README.md
+'''          
