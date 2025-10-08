@@ -201,7 +201,8 @@ bot-detection-project/
 │       ├── confusion_matrix.jpg
 |       ├── PR_curve.jpg
 │       └── ROC_curve.jpg
-│   ├── preprocess.py
+│   ├── dashboard.py
+|   ├── preprocess.py
 │   └── train.py
 ├── .gitignore
 ├── requirements.txt
@@ -271,3 +272,117 @@ Importance des variables
 Les graphiques sont enregistrés dans le dossier 'results'
 
 ## Résultats
+
+Voici un résumé des résultats obtenus pour ce travail de détections de bots.
+Ces premiers résultats vont servir de fondements pour essayer d'améliorer certains aspects par la suite.
+
+---
+
+### 1. Choix des Métriques
+
+Dans le contexte de la détection de bots, **l’Accuracy (Exactitude)** n’est pas la métrique la plus fiable, car le jeu de données est **déséquilibré** (majorité de sessions humaines).  
+Un modèle pourrait être précis à 95% en classant tout comme *« Humain »*, si les bots ne représentent que 5% du trafic.
+
+Voici les métriques que nous allons privilégier:
+
+- **Rappel (Recall)** : proportion de bots correctement identifiés  
+  $$ Recall = \frac{TP}{TP + FN} $$  
+  ➤ *Objectif : maximiser le rappel pour minimiser les faux négatifs (bots non détectés).*
+
+- **Précision (Precision)** : proportion de prédictions "Robot" réellement correctes  
+  $$ Precision = \frac{TP}{TP + FP} $$  
+  ➤ *Objectif : maintenir une bonne précision pour éviter de bloquer des utilisateurs humains.*
+
+- **F1-Score** et **PR AUC** (Area Under the Precision-Recall Curve) combinent ces deux aspects.  
+  La **PR AUC** a été utilisée comme **métrique principale pour l’optimisation via Optuna**.
+
+---
+
+### 2. Optimisation des Hyperparamètres avec Optuna
+
+Une recherche automatisée d’hyperparamètres a été réalisée avec **Optuna**, en maximisant la **PR AUC** sur l’ensemble de validation.
+
+**Meilleur PR AUC (Validation) : 0.9488**
+
+**Hyperparamètres optimaux :**
+
+| Hyperparamètre | Valeur | Description |
+| :--- | :--- | :--- |
+| `n_estimators` | 807 | Nombre d’arbres de décision |
+| `max_depth` | 9 | Profondeur maximale des arbres |
+| `learning_rate` | 0.2494 | Taux d’apprentissage |
+| `subsample` | 0.9803 | Fraction d’échantillons utilisée par arbre |
+| `colsample_bytree` | 0.7125 | Fraction de features utilisée par arbre |
+| `gamma` | 0.3269 | Seuil de perte minimale pour une division |
+| `lambda (L2)` | 4.8422 | Terme de régularisation L2 |
+| `alpha (L1)` | 1.2015 | Terme de régularisation L1 |
+
+---
+
+### 3. Résultats Finaux sur le Jeu de Test
+
+| Classe | Précision | Rappel | F1-Score | Support |
+| :--- | :---: | :---: | :---: | :---: |
+| **Humain** | 0.99 | 0.95 | 0.97 | 9839 |
+| **Robot** | 0.75 | 0.95 | **0.84** | 1507 |
+| **Accuracy globale** |  |  | 0.95 | 11346 |
+
+**Interprétation :**
+- 🔹 **Rappel (Bots) = 95%** → excellente détection des menaces.  
+- 🔸 **Précision (Bots) = 75%** → 25% de faux positifs (humains mal classés).  
+  Cela reste acceptable, mais représente **l’axe principal d’amélioration**.
+
+---
+
+### 📉 4. Courbes de Performance
+
+#### • Courbe ROC (Receiver Operating Characteristic)
+![Courbe ROC](src/results/ROC_curve.jpg)  
+
+**AUC = 0.99069** → excellente capacité discriminatoire.
+
+#### • Courbe Précision–Rappel
+![Courbe Precision-Recall](src/results/PR_curve.jpg)
+
+La courbe montre un maintien élevé de la précision même pour un rappel fort, validant la robustesse du modèle.
+
+---
+
+### 🔍 5. Explicabilité : Importance des Caractéristiques
+
+![10 most important features in average](src/results/10_best_features.jpg)
+
+Le modèle identifie les **10 features les plus importantes** pour distinguer les bots des humains :
+
+| Rang | Feature | Importance (Gain) | Interprétation |
+| :---: | :--- | :---: | :--- |
+| 1 | `MAX_BARRAGE` | 0.5196 | Indicateur d’agressivité (rafales de requêtes) |
+| 2 | `HTML_TO_CSS` | 0.1423 | Ratio de requêtes CSS/HTML (souvent faible pour les scrapers) |
+| 3 | `DEPTH` | 0.0628 | Profondeur de navigation (anormale pour bots) |
+| 4 | `REPEATED_REQUESTS` | 0.0447 | Taux d’activité répétitive |
+| 5 | `HTML_TO_IMAGE` | 0.0316 | Ratio images/HTML (bots ignorent souvent les images) |
+| 6 | `NUMBER_OF_REQUESTS` | 0.0283 | Volume total de la session |
+| 7 | `TOTAL_HTML` | 0.0253 | Nombre de fichiers HTML demandés |
+| 8 | `GET_METHOD` | 0.0195 | Usage de la méthode HTTP GET |
+| 9 | `TOTAL_DURATION` | 0.0163 | Durée totale de la session |
+| 10 | `IMAGES` | 0.0130 | Nombre de fichiers image chargés |
+
+![Importance SHAP](src/results/SHAP_features_importance_detailled.png)
+
+**Conclusion :**  
+Le modèle a appris que les **bots** se distinguent principalement par :
+- une **vitesse excessive** (`MAX_BARRAGE`),  
+- un **volume important de requêtes** (`NUMBER_OF_REQUESTS`),  
+- et des **patterns non-humains** dans les ressources demandées (`HTML_TO_CSS`, `HTML_TO_IMAGE`).
+
+---
+
+## Conclusion et pistes d'améliorations
+
+Le projet démontre qu'un modèle XGBoost bien optimisé permet de **détecter efficacement les bots** à partir de logs HTTP, avec un **rappel élevé (95%)** pour la classe bot, garantissant la capture de la majorité des activités automatisées. Une tentative d'explicabilité des features souligne que les comportements de bots se traduisent par des **rafales de requêtes**, des **patterns de navigation atypiques** et des **ratios de ressources spécifiques (images, CSS)**.
+
+#### Limites et axes d’amélioration
+
+- **Précision des bots (75%)** : réduire les faux positifs pour éviter de bloquer des utilisateurs légitimes, éventuellement via des techniques de rééchantillonnage ou de pondération de classes plus fine.
+- **Exploration d’autres modèles** : tester des approches basées sur des réseaux de neurones ou des forêts aléatoires pour comparer la performance.
+- **Détection en temps réel** : adapter le pipeline pour une application en ligne, ce qui nécessite un traitement rapide et efficace des logs entrants.

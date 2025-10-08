@@ -68,6 +68,8 @@ def train_and_evaluate():
         verbose=False
     )
 
+    final_model.save_model("best_model.json")
+
     # Évaluation sur le jeu de test
     print("\nÉvaluation du modèle final sur le jeu de test...\n")
     y_pred = final_model.predict(X_test)
