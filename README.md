@@ -328,13 +328,13 @@ Une recherche automatisée d’hyperparamètres a été réalisée avec **Optuna
 | **Accuracy globale** |  |  | 0.95 | 11346 |
 
 **Interprétation :**
-- 🔹 **Rappel (Bots) = 95%** → excellente détection des menaces.  
-- 🔸 **Précision (Bots) = 75%** → 25% de faux positifs (humains mal classés).  
+- **Rappel (Bots) = 95%** → excellente détection des menaces.  
+- **Précision (Bots) = 75%** → 25% de faux positifs (humains mal classés).  
   Cela reste acceptable, mais représente **l’axe principal d’amélioration**.
 
 ---
 
-### 📉 4. Courbes de Performance
+### 4. Courbes de Performance
 
 #### • Courbe ROC (Receiver Operating Characteristic)
 ![Courbe ROC](src/results/ROC_curve.jpg)  
@@ -348,7 +348,7 @@ La courbe montre un maintien élevé de la précision même pour un rappel fort,
 
 ---
 
-### 🔍 5. Explicabilité : Importance des Caractéristiques
+### 5. Explicabilité : Importance des Caractéristiques
 
 ![10 most important features in average](src/results/10_best_features.jpg)
 
