@@ -330,7 +330,7 @@ Une recherche automatisée d’hyperparamètres a été réalisée avec **Optuna
 **Interprétation :**
 - **Rappel (Bots) = 95%** → excellente détection des menaces.  
 - **Précision (Bots) = 75%** → 25% de faux positifs (humains mal classés).  
-  Cela reste acceptable, mais représente **l’axe principal d’amélioration**.
+  Cela reste acceptable, mais représente **l’axe principal d’amélioration** du projet par la suite.
 
 ---
 
@@ -339,7 +339,7 @@ Une recherche automatisée d’hyperparamètres a été réalisée avec **Optuna
 #### • Courbe ROC (Receiver Operating Characteristic)
 ![Courbe ROC](src/results/ROC_curve.jpg)  
 
-**AUC = 0.99069** → excellente capacité discriminatoire.
+**AUC = 0.99069** → excellente capacité discriminatoire sur le papier mais ATTENTION cette métrique est à  nuancer car le dataset est déséquilibré.
 
 #### • Courbe Précision–Rappel
 ![Courbe Precision-Recall](src/results/PR_curve.jpg)
